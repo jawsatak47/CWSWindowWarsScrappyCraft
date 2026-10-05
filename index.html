@@ -37,19 +37,6 @@ header{text-align:center;padding:34px 16px 20px}
 .logo i{display:block;height:22px;background:linear-gradient(135deg,rgba(127,216,255,.55),rgba(43,159,216,.15))}
 h1{font-family:'Bebas Neue',Impact,sans-serif;font-size:clamp(54px,14vw,110px);letter-spacing:.06em;line-height:.95;text-shadow:0 4px 30px rgba(212,87,42,.45)}
 h1 span{color:var(--glass);display:block;font-size:.42em;letter-spacing:.35em;margin-top:6px;text-shadow:none}
-
-/* Flyer Image Styling */
-.event-flyer {
-  max-width: 100%;
-  width: 380px;
-  height: auto;
-  margin: 20px auto 10px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  display: block;
-}
-
 .sub{color:var(--mute);margin-top:12px;font-size:14px}
 .status{display:inline-block;margin-top:14px;padding:7px 16px;border-radius:99px;font-weight:800;font-size:13px;letter-spacing:.08em}
 .status.open{background:rgba(143,214,148,.14);color:var(--green);border:1px solid var(--green)}
@@ -59,6 +46,8 @@ h1 span{color:var(--glass);display:block;font-size:.42em;letter-spacing:.35em;ma
 .prizes b{background:var(--panel2);border:1px solid var(--line);padding:6px 12px;border-radius:8px;font-size:12px;letter-spacing:.06em}
 .prizes b em{color:var(--amber);font-style:normal}
 .prizeNote{font-size:11px;color:var(--mute);letter-spacing:.14em;margin-top:8px}
+.flyer{display:block;max-width:420px;margin:26px auto 0;border:3px solid var(--glass);border-radius:10px;padding:6px;background:rgba(127,216,255,.08);box-shadow:0 10px 40px rgba(0,0,0,.5),0 0 40px rgba(43,159,216,.18)}
+.flyer img{display:block;width:100%;height:auto;border-radius:5px}
 nav{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:10px 12px;position:sticky;top:0;background:rgba(20,10,5,.92);backdrop-filter:blur(8px);z-index:5;border-bottom:1px solid var(--line)}
 nav button,nav a{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:10px 16px;border-radius:8px;font:700 13px Inter;letter-spacing:.05em;cursor:pointer;text-decoration:none}
 nav button.on{background:var(--glass);color:#04202e;border-color:var(--glass)}
@@ -105,6 +94,11 @@ input{width:100%;background:var(--panel2);color:var(--text);border:1px solid var
 .lock input{max-width:240px;margin:12px auto;text-align:center}
 .lock .btn{max-width:240px}
 .err{color:var(--red);font-size:13px;min-height:18px}
+.edrow{display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:center;margin-bottom:12px}
+.thumb{width:72px;height:90px;border-radius:8px;background:var(--panel2) center/cover no-repeat;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--mute);font:400 30px 'Bebas Neue'}
+.btns{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.up,.mini{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font:700 12px Inter;cursor:pointer;letter-spacing:.04em;margin:0}
+.up{display:inline-block}
 .ed{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
 footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;padding:0 14px;line-height:1.7}
 .sponsors{margin-top:6px;color:var(--text);font-weight:600}
@@ -117,17 +111,14 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
 <header>
   <div class="logo"><i></i><i></i><i></i><i></i></div>
   <h1>WINDOW<span>WARS</span></h1>
-  
-  <!-- EVENT FLYER IMAGE -->
-  <a href="windowwars1.png" target="_blank" rel="noopener">
-    <img src="windowwars1.png" alt="Window Wars Event Flyer" class="event-flyer">
-  </a>
-
   <p class="sub" id="eventLine"></p>
   <div class="status" id="status"></div>
   <p class="rules" id="rulesLine"></p>
   <div class="prizes" id="prizes"></div>
   <div class="prizeNote">ALL PRIZES ARE SHOP CREDIT</div>
+  <a class="flyer" id="flyerLink" href="#" target="_blank" rel="noopener" style="display:none">
+    <img id="flyerImg" alt="WindowWars event flyer">
+  </a>
 </header>
 
 <nav>
@@ -135,7 +126,7 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
   <button data-t="board">🏆 LEADERBOARD</button>
   <button data-t="photos">📸 PHOTOS</button>
   <button data-t="host">🎛 HOST</button>
-  <a id="infoLink" href="flyer.png" target="_blank" rel="noopener">ℹ EVENT INFO</a>
+  <a id="infoLink" href="#" target="_blank" rel="noopener">ℹ EVENT INFO</a>
 </nav>
 
 <div class="stats">
@@ -184,10 +175,7 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
         <div id="editList"></div>
         <div class="ed">
           <label>Host artist</label>
-          <div class="row">
-            <input id="hostName" placeholder="Host name">
-            <input id="hostPhoto" placeholder="Photo URL (optional)">
-          </div>
+          <div id="hostEdit"></div>
         </div>
         <div style="margin-top:14px"><button class="btn" id="saveArtists">SAVE</button></div>
         <div class="ed">
@@ -221,15 +209,20 @@ const CONFIG = {
   FORMAT     : "Live Window Painting Battle",
   VENUE      : "Live at ScrappyCrafts",
   CITY       : "Phoenix, OR",
-  DATE_LINE  : "DATE & TIME TBD",
+  DATE_LINE  : "DATE & TIME TBD",       // ← e.g. "Sat, Oct 24, 2026 · 11AM–5PM"
   RULES_LINE : "4 Artists · Windows supplied · Hosted by JawsAtak",
-  PRIZES     : ["1ST · $100","2ND · $50","3RD · $25","4TH · $25"],
-  INFO_URL   : "flyer.png",
-  SPONSORS   : [],
+  PRIZES     : ["1ST · $100","2ND · $50","3RD · $25","4TH · $25"],  // shop credit
+  INFO_URL   : "windowwars1.png",       // ← EVENT INFO button opens the flyer; swap for a page link if you like
+  SPONSORS   : [],                      // ← e.g. ["ScrappyCrafts"]
   FOOTER     : "CANVASWARS · WINDOWWARS · PHOENIX, OR · 2026",
-  HOST_PIN   : "1234",
-  DEFAULT_ARTISTS : ["Oliver Felix", "Bernard Lawrence", "Micha Blacklight", "Fast1"],
+  HOST_PIN   : "1234",                  // ← CHANGE THIS before the event
+  DEFAULT_ARTISTS : ["Oliver Felix","Bernard Lawrence","Micha Blacklight","Fast1"],
+  FLYER      : "windowwars1.png",       // ← keep this file in the same folder as index.html
   HOST_ARTIST     : "JawsAtak",
+
+  /* Shared live voting: paste a Firebase Realtime Database URL here
+     (e.g. "https://your-project-default-rtdb.firebaseio.com") with rules allowing
+     read/write on /windowwars. Leave "" for single-device preview mode. */
   DB_URL : ""
 };
 /* ========================================================================== */
@@ -242,6 +235,8 @@ const UNLOCK_KEY = "windowwars_host_v2";
 /* ---------- storage adapter (Firebase REST or localStorage) ---------- */
 const live = !!CONFIG.DB_URL;
 const base = live ? CONFIG.DB_URL.replace(/\/$/,"") + "/windowwars" : null;
+const base2 = live ? CONFIG.DB_URL.replace(/\/$/,"") + "/windowwarsPhotos" : null; // photos kept apart so live polling stays light
+let photosCache = {}, photoVerSeen = null, photoDraft = {};
 
 function localLoad(){ try{ return JSON.parse(localStorage.getItem(LS)) || {}; }catch(e){ return {}; } }
 function localSave(s){ try{ localStorage.setItem(LS, JSON.stringify(s)); }catch(e){} }
@@ -249,15 +244,49 @@ function localSave(s){ try{ localStorage.setItem(LS, JSON.stringify(s)); }catch(
 async function loadState(){
   let s;
   if(live){
-    try{ const r = await fetch(base + ".json"); s = (await r.json()) || {}; }
+    try{
+      const r = await fetch(base + ".json"); s = (await r.json()) || {};
+      if(s.photoVer !== photoVerSeen){
+        try{ photosCache = (await (await fetch(base2 + ".json")).json()) || {}; photoVerSeen = s.photoVer; }catch(e){}
+      }
+      s.photos = photosCache;
+    }
     catch(e){ s = localLoad(); }
   } else s = localLoad();
   return normalize(s);
 }
+async function savePhotos(map){
+  if(live){
+    await fetch(base2 + ".json",{method:"PUT",body:JSON.stringify(map)});
+    await fetch(base + "/photoVer.json",{method:"PUT",body:JSON.stringify(Date.now())});
+    photoVerSeen = null;
+  } else { const s = localLoad(); s.photos = map; localSave(s); }
+}
+function fileToDataURL(file, max){
+  max = max || 520;
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = ()=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const k = Math.min(1, max/Math.max(img.width,img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width*k); c.height = Math.round(img.height*k);
+        c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+        res(c.toDataURL("image/jpeg",.72));
+      };
+      img.onerror = rej; img.src = r.result;
+    };
+    r.onerror = rej; r.readAsDataURL(file);
+  });
+}
 function normalize(s){
   s.open = s.open !== false;
-  if(!s.artists){ s.artists = {}; CONFIG.DEFAULT_ARTISTS.forEach((n,i)=>{ s.artists["a"+(i+1)] = {name:n, photo:""}; }); }
-  s.host = s.host || { name: CONFIG.HOST_ARTIST, photo: "" };
+  if(!s.artists){ s.artists = {}; CONFIG.DEFAULT_ARTISTS.forEach((n,i)=>{ s.artists["a"+(i+1)] = {name:n}; }); }
+  s.photos = s.photos || {};
+  Object.keys(s.artists).forEach(id=>{ s.artists[id].photo = s.photos[id] || ""; });
+  s.host = s.host || { name: CONFIG.HOST_ARTIST };
+  s.host.photo = s.photos.host || "";
   s.votes = s.votes || {};
   s.gallery = Array.isArray(s.gallery) ? s.gallery : Object.values(s.gallery || {});
   return s;
@@ -293,6 +322,14 @@ function renderHeader(){
   $("sArtists").textContent = ids().length;
   $("sPool").textContent = "$" + prizePool();
   $("infoLink").href = CONFIG.INFO_URL;
+  if(CONFIG.FLYER){
+    const img = $("flyerImg"), a = $("flyerLink");
+    if(!img.getAttribute("src")){
+      img.onload = () => { a.style.display = "block"; };
+      img.onerror = () => { a.style.display = "none"; };
+      img.src = CONFIG.FLYER; a.href = CONFIG.FLYER;
+    }
+  }
   $("footLine").textContent = CONFIG.FOOTER;
   $("sponsors").textContent = CONFIG.SPONSORS.join(" · ");
   const st = $("status");
@@ -340,11 +377,15 @@ function renderHost(){
   $("lockBox").style.display = ok ? "none" : "block";
   $("hostPanel").style.display = ok ? "block" : "none";
   if(!ok) return;
-  $("editList").innerHTML = ids().map(id=>`<div class="row" style="margin-bottom:8px">
-    <input data-name="${id}" value="${esc(S.artists[id].name)}" placeholder="Artist name">
-    <input data-photo="${id}" value="${esc(S.artists[id].photo||"")}" placeholder="Photo URL (optional)"></div>`).join("");
-  $("hostName").value = S.host.name;
-  $("hostPhoto").value = S.host.photo || "";
+  $("editList").innerHTML = ids().map(id=>editRow(id, S.artists[id].name, `data-name="${id}"`)).join("");
+  $("hostEdit").innerHTML = editRow("host", S.host.name, `id="hostName"`);
+}
+function editRow(key, name, nameAttr){
+  const cur = (key in photoDraft) ? photoDraft[key] : (key === "host" ? S.host.photo : S.artists[key].photo);
+  return `<div class="edrow"><div class="thumb" data-thumb="${key}" ${bg(cur)}>${cur ? "" : "+"}</div>
+    <div class="edf"><input ${nameAttr} value="${esc(name)}" placeholder="Name">
+    <div class="btns"><label class="up">📷 Upload photo<input type="file" accept="image/*" data-file="${key}" hidden></label>
+    <button type="button" class="mini" data-clear="${key}">Remove</button></div></div></div>`;
 }
 
 function renderAll(){ renderHeader(); renderVote(); renderBoard(); renderGallery(); renderHost(); }
@@ -377,17 +418,37 @@ $("pin").onkeydown = e=>{ if(e.key==="Enter") $("unlock").click(); };
 $("toggleVote").onclick = async ()=>{ await put("open", !S.open); await refresh(); toast(S.open?"Voting open":"Voting closed"); };
 
 $("saveArtists").onclick = async ()=>{
-  const a = {};
+  const a = {}, photos = {};
   ids().forEach(id=>{
-    a[id] = {
-      name: document.querySelector(`[data-name="${id}"]`).value.trim() || S.artists[id].name,
-      photo: document.querySelector(`[data-photo="${id}"]`).value.trim()
-    };
+    a[id] = { name: document.querySelector(`[data-name="${id}"]`).value.trim() || S.artists[id].name };
+    const p = (id in photoDraft) ? photoDraft[id] : S.artists[id].photo;
+    if(p) photos[id] = p;
   });
+  const hp = ("host" in photoDraft) ? photoDraft.host : S.host.photo;
+  if(hp) photos.host = hp;
   await put("artists", a);
-  await put("host", { name: $("hostName").value.trim() \vert{}\vert{} CONFIG.HOST_ARTIST, photo: $("hostPhoto").value.trim() });
+  await put("host", { name: $("hostName").value.trim() || CONFIG.HOST_ARTIST });
+  await savePhotos(photos);
+  photoDraft = {};
   toast("Saved"); await refresh();
 };
+
+$("hostPanel").addEventListener("change", async e=>{
+  const k = e.target.dataset.file; if(!k || !e.target.files[0]) return;
+  try{
+    photoDraft[k] = await fileToDataURL(e.target.files[0]);
+    const t = document.querySelector(`[data-thumb="${k}"]`);
+    t.style.backgroundImage = `url('${photoDraft[k]}')`; t.textContent = "";
+    toast("Photo ready — press SAVE");
+  }catch(err){ toast("Couldn't read that image"); }
+});
+$("hostPanel").addEventListener("click", e=>{
+  const k = e.target.dataset.clear; if(!k) return;
+  photoDraft[k] = "";
+  const t = document.querySelector(`[data-thumb="${k}"]`);
+  t.style.backgroundImage = "none"; t.textContent = "+";
+  toast("Photo removed — press SAVE");
+});
 
 $("addPhoto").onclick = async ()=>{
   const u = $("galUrl").value.trim(); if(!u) return;
