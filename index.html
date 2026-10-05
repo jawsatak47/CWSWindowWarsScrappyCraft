@@ -187,7 +187,7 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
       <div class="panel">
         <h3>EDIT EVENT FLYER</h3>
         <label>Flyer PNG Image URL / File Path</label>
-        <input id="flyerInput" placeholder="flyer.png or https://…/flyer.png">
+        <input id="flyerInput" placeholder="windowwars1.png or https://…/flyer.png">
       </div>
 
       <div class="panel">
@@ -240,20 +240,17 @@ const CONFIG = {
   FORMAT     : "Live Window Painting Battle",
   VENUE      : "Live at ScrappyCrafts",
   CITY       : "Phoenix, OR",
-  DATE_LINE  : "DATE & TIME TBD",       // ← e.g. "Sat, Oct 24, 2026 · 11AM–5PM"
+  DATE_LINE  : "DATE & TIME TBD",
   RULES_LINE : "4 Artists · Windows supplied · Hosted by JawsAtak",
-  PRIZES     : ["1ST · $100","2ND · $50","3RD · $25","4TH · $25"],  // shop credit
-  INFO_URL   : "#",                     // ← link to event info / flyer page
-  FLYER_URL  : "windowwars1.png",             // ← CHANGE THIS to your .png image path or URL
-  SPONSORS   : [ScrappyCraft, QuarkForce],                      // ← e.g. ["ScrappyCrafts"]
+  PRIZES     : ["1ST · $100","2ND · $50","3RD · $25","4TH · $25"],
+  INFO_URL   : "#",
+  FLYER_URL  : "windowwars1.png",
+  SPONSORS   : ["ScrappyCraft", "QuarkForce"],
   FOOTER     : "CANVASWARS · WINDOWWARS · PHOENIX, OR · 2026",
-  HOST_PIN   : "1234",                  // ← CHANGE THIS before the event
+  HOST_PIN   : "1234",
   DEFAULT_ARTISTS : ["Oliver Felix","Bernard Lawrence","Micha BlackLight","Fast1"],
   HOST_ARTIST     : "JawsAtak",
 
-  /* Shared live voting: paste a Firebase Realtime Database URL here
-     (e.g. "https://your-project-default-rtdb.firebaseio.com") with rules allowing
-     read/write on /windowwars. Leave "" for single-device preview mode. */
   DB_URL : ""
 };
 /* ========================================================================== */
@@ -263,7 +260,7 @@ const LS = "windowwars_v2";
 const VOTED_KEY = "windowwars_voted_v2";
 const UNLOCK_KEY = "windowwars_host_v2";
 
-/* ---------- storage adapter (Firebase REST or localStorage) ---------- */
+/* ---------- storage adapter ---------- */
 const live = !!CONFIG.DB_URL;
 const base = live ? CONFIG.DB_URL.replace(/\/$/,"") + "/windowwars" : null;
 
