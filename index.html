@@ -64,6 +64,8 @@ h2{font:400 30px 'Bebas Neue';letter-spacing:.1em;margin:20px 0 6px}
 .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .card .bd{padding:12px}
 .card h3{font:400 24px 'Bebas Neue';letter-spacing:.06em}
+.card h3 a, .host h3 a, .lb-row .nm a{color:inherit;text-decoration:none;transition:color .2s}
+.card h3 a:hover, .host h3 a:hover, .lb-row .nm a:hover{color:var(--glass);text-decoration:underline}
 .card .ct{color:var(--mute);font-size:12px;margin:2px 0 10px}
 .btn{width:100%;background:var(--glass);color:#04202e;border:0;border-radius:8px;padding:11px;font:800 13px Inter;letter-spacing:.08em;cursor:pointer}
 .btn:disabled{background:var(--panel2);color:var(--mute);cursor:not-allowed}
@@ -212,15 +214,14 @@ const CONFIG = {
   SPONSORS   : [],                      // ← e.g. ["ScrappyCrafts"]
   FOOTER     : "CANVASWARS · WINDOWWARS · PHOENIX, OR · 2026",
   HOST_PIN   : "1234",                  // ← CHANGE THIS before the event
-  /* Artist & host photos: drop the image files in the same folder as index.html
-     and put the file names here (jpg/png). Leave "" to show the big letter instead. */
+  /* Artist & host photos & social profiles: Add Instagram or other profile URLs here */
   ARTISTS : [
-    { name:"Oliver Felix",     photo:"Oliver felix.jpg" },
-    { name:"Bernard Lawrence", photo:"bernard lawrence.jpg" },
-    { name:"Micha Blacklight", photo:"micha blacklight.jpg" },
-    { name:"Fast1",            photo:"fast2.jpg" }
+    { name:"Oliver Felix",     photo:"Oliver felix.jpg",      social:"https://instagram.com" },
+    { name:"Bernard Lawrence", photo:"bernard lawrence.jpg",  social:"https://instagram.com" },
+    { name:"Micha Blacklight", photo:"micha blacklight.jpg",  social:"https://instagram.com" },
+    { name:"Fast1",            photo:"fast2.jpg",             social:"https://instagram.com" }
   ],
-  HOST : { name:"JawsAtak", photo:"jawsatak.jpg" },
+  HOST : { name:"JawsAtak", photo:"jawsatak.jpg", social:"https://instagram.com" },
   FLYER      : "windowwars1.png",       // ← keep this file in the same folder as index.html
 
   /* Shared live voting: paste a Firebase Realtime Database URL here
@@ -253,8 +254,12 @@ async function loadState(){
 function normalize(s){
   s.open = s.open !== false;
   if(!s.artists){ s.artists = {}; CONFIG.ARTISTS.forEach((a,i)=>{ s.artists["a"+(i+1)] = {name:a.name}; }); }
-  Object.keys(s.artists).forEach(id=>{ s.artists[id].photo = (CONFIG.ARTISTS[+id.slice(1)-1] || {}).photo || ""; });
-  s.host = { name: (s.host && s.host.name) || CONFIG.HOST.name, photo: CONFIG.HOST.photo || "" };
+  Object.keys(s.artists).forEach(id=>{ 
+    const ref = CONFIG.ARTISTS[+id.slice(1)-1] || {};
+    s.artists[id].photo = ref.photo || ""; 
+    s.artists[id].social = ref.social || "";
+  });
+  s.host = { name: (s.host && s.host.name) || CONFIG.HOST.name, photo: CONFIG.HOST.photo || "", social: CONFIG.HOST.social || "" };
   s.votes = s.votes || {};
   s.gallery = Array.isArray(s.gallery) ? s.gallery : Object.values(s.gallery || {});
   return s;
@@ -276,7 +281,10 @@ const ids = () => Object.keys(S.artists);
 const voted = () => { try{ return localStorage.getItem(VOTED_KEY); }catch(e){ return null; } };
 const unlocked = () => { try{ return sessionStorage.getItem(UNLOCK_KEY) === "1"; }catch(e){ return false; } };
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const phInner = (name, photo) => `<span>${esc((name||"?").charAt(0).toUpperCase())}</span>` + (photo ? `<img src="${esc(photo)}" alt="" onerror="this.remove()">` : "");
+const phInner = (name, photo, social) => {
+  const content = `<span>${esc((name||"?").charAt(0).toUpperCase())}</span>` + (photo ? `<img src="${esc(photo)}" alt="" onerror="this.remove()">` : "");
+  return social ? `<a href="${esc(social)}" target="_blank" rel="noopener" style="display:contents">${content}</a>` : content;
+};
 function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1800); }
 
 function prizePool(){
@@ -313,25 +321,31 @@ function renderVote(){
     const a = S.artists[id];
     const disabled = !S.open || mine;
     const label = mine === id ? "✓ YOUR VOTE" : (!S.open ? "VOTING CLOSED" : (mine ? "VOTE CAST" : "VOTE"));
+    const nameHtml = a.social ? `<a href="${esc(a.social)}" target="_blank" rel="noopener">${esc(a.name)}</a>` : esc(a.name);
     return `<div class="card ${mine===id?"voted":""}">
-      <div class="ph">${phInner(a.name, a.photo)}</div>
-      <div class="bd"><h3>${esc(a.name)}</h3>
+      <div class="ph">${phInner(a.name, a.photo, a.social)}</div>
+      <div class="bd"><h3>${nameHtml}</h3>
       <button class="btn" data-vote="${id}" ${disabled?"disabled":""}>${label}</button></div></div>`;
   }).join("");
   const h = S.host;
-  $("hostCard").innerHTML = `<div class="ph">${phInner(h.name, h.photo)}</div>
-    <div><small>HOST ARTIST</small><h3>${esc(h.name)}</h3><p>Painting live alongside the field — not competing.</p></div>`;
+  const hostNameHtml = h.social ? `<a href="${esc(h.social)}" target="_blank" rel="noopener">${esc(h.name)}</a>` : esc(h.name);
+  $("hostCard").innerHTML = `<div class="ph">${phInner(h.name, h.photo, h.social)}</div>
+    <div><small>HOST ARTIST</small><h3>${hostNameHtml}</h3><p>Painting live alongside the field — not competing.</p></div>`;
 }
 
 function renderBoard(){
   const pts = id => +(S.votes[id]||0);
   const order = ids().sort((a,b)=>pts(b)-pts(a));
   const max = Math.max(1, ...order.map(pts));
-  $("lb").innerHTML = order.map((id,i)=>`
+  $("lb").innerHTML = order.map((id,i)=>{
+    const a = S.artists[id];
+    const nameHtml = a.social ? `<a href="${esc(a.social)}" target="_blank" rel="noopener">${esc(a.name)}</a>` : esc(a.name);
+    return `
     <div class="lb-row"><div class="rk">${i+1}</div>
-      <div><div class="nm">${esc(S.artists[id].name)}</div><div class="br"><i style="width:${(pts(id)/max)*100}%"></i></div></div>
+      <div><div class="nm">${nameHtml}</div><div class="br"><i style="width:${(pts(id)/max)*100}%"></i></div></div>
       <div class="pt">${pts(id)}<small>PTS</small></div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 }
 
 function renderGallery(){
