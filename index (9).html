@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Window Wars — Live at ScrappyCrafts</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#140a05; --panel:#26160e; --panel2:#332014; --line:#5a3a24;
+  --glass:#7fd8ff; --glass2:#2b9fd8; --amber:#f0933a; --ember:#d4572a; --text:#f8ecd9; --mute:#c0a085; --red:#ff6a4d; --green:#8fd694;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}
+body{min-height:100vh;padding-bottom:60px;position:relative;overflow-x:hidden;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% -5%, rgba(212,87,42,.45), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 100% 30%, rgba(240,147,58,.18), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 0% 70%, rgba(150,50,30,.28), transparent 70%),
+    linear-gradient(180deg,#2b150a 0%,#1a0d06 55%,#120804 100%);
+  background-attachment:fixed;}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(240,147,58,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(240,147,58,.06) 1px,transparent 1px);
+  background-size:80px 80px;}
+header,nav,.stats,main,footer{position:relative;z-index:1}
+.leaf{position:fixed;top:-60px;z-index:0;pointer-events:none;opacity:.5;animation:fall linear infinite;font-size:22px}
+@keyframes fall{
+  0%{transform:translate3d(0,-60px,0) rotate(0deg)}
+  50%{transform:translate3d(40px,55vh,0) rotate(180deg)}
+  100%{transform:translate3d(-30px,112vh,0) rotate(360deg)}
+}
+@media (prefers-reduced-motion:reduce){.leaf{display:none}}
+header{text-align:center;padding:34px 16px 20px}
+.logo{display:inline-grid;grid-template-columns:repeat(2,26px);gap:4px;padding:6px;border:3px solid var(--glass);border-radius:6px;margin-bottom:12px;background:rgba(127,216,255,.08)}
+.logo i{display:block;height:22px;background:linear-gradient(135deg,rgba(127,216,255,.55),rgba(43,159,216,.15))}
+h1{font-family:'Bebas Neue',Impact,sans-serif;font-size:clamp(54px,14vw,110px);letter-spacing:.06em;line-height:.95;text-shadow:0 4px 30px rgba(212,87,42,.45)}
+h1 span{color:var(--glass);display:block;font-size:.42em;letter-spacing:.35em;margin-top:6px;text-shadow:none}
+.sub{color:var(--mute);margin-top:12px;font-size:14px}
+.status{display:inline-block;margin-top:14px;padding:7px 16px;border-radius:99px;font-weight:800;font-size:13px;letter-spacing:.08em}
+.status.open{background:rgba(143,214,148,.14);color:var(--green);border:1px solid var(--green)}
+.status.closed{background:rgba(255,106,77,.14);color:var(--red);border:1px solid var(--red)}
+.rules{margin-top:10px;font-size:13px;color:var(--mute)}
+.prizes{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+.prizes b{background:var(--panel2);border:1px solid var(--line);padding:6px 12px;border-radius:8px;font-size:12px;letter-spacing:.06em}
+.prizes b em{color:var(--amber);font-style:normal}
+.prizeNote{font-size:11px;color:var(--mute);letter-spacing:.14em;margin-top:8px}
+nav{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:10px 12px;position:sticky;top:0;background:rgba(20,10,5,.92);backdrop-filter:blur(8px);z-index:5;border-bottom:1px solid var(--line)}
+nav button,nav a{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:10px 16px;border-radius:8px;font:700 13px Inter;letter-spacing:.05em;cursor:pointer;text-decoration:none}
+nav button.on{background:var(--glass);color:#04202e;border-color:var(--glass)}
+.stats{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:22px 12px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 22px;text-align:center;font-size:11px;letter-spacing:.12em;color:var(--mute)}
+.stat b{display:block;font:400 34px 'Bebas Neue';color:var(--glass);letter-spacing:.04em}
+main{max-width:1000px;margin:0 auto;padding:0 14px}
+section{display:none}section.on{display:block}
+h2{font:400 30px 'Bebas Neue';letter-spacing:.1em;margin:20px 0 6px}
+.note{color:var(--mute);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.card .ph{aspect-ratio:4/5;background:var(--panel2) center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--mute);font:400 64px 'Bebas Neue'}
+.card .bd{padding:12px}
+.card h3{font:400 24px 'Bebas Neue';letter-spacing:.06em}
+.card .ct{color:var(--mute);font-size:12px;margin:2px 0 10px}
+.btn{width:100%;background:var(--glass);color:#04202e;border:0;border-radius:8px;padding:11px;font:800 13px Inter;letter-spacing:.08em;cursor:pointer}
+.btn:disabled{background:var(--panel2);color:var(--mute);cursor:not-allowed}
+.btn.sec{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.btn.warn{background:var(--ember);color:#fff}
+.card.voted{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber)}
+.host{display:grid;grid-template-columns:96px 1fr;gap:16px;align-items:center;background:linear-gradient(135deg,rgba(43,159,216,.16),rgba(212,87,42,.12));border:1px solid var(--glass2);border-radius:14px;padding:14px;margin-top:26px}
+.host .ph{width:96px;height:96px;border-radius:12px;background:var(--panel2) center/cover no-repeat;display:flex;align-items:center;justify-content:center;font:400 44px 'Bebas Neue';color:var(--glass)}
+.host small{display:block;font-size:11px;letter-spacing:.2em;color:var(--glass);font-weight:800}
+.host h3{font:400 34px 'Bebas Neue';letter-spacing:.06em;margin:2px 0}
+.host p{color:var(--mute);font-size:13px}
+.lb-row{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.lb-row .rk{font:400 34px 'Bebas Neue';color:var(--mute)}
+.lb-row:nth-child(1) .rk{color:var(--amber)}
+.lb-row .nm{font-weight:800}
+.lb-row .br{height:7px;border-radius:4px;background:var(--panel2);margin-top:7px;overflow:hidden}
+.lb-row .br i{display:block;height:100%;background:linear-gradient(90deg,var(--glass2),var(--glass))}
+.lb-row .pt{font:400 32px 'Bebas Neue';color:var(--glass);text-align:right;line-height:1}
+.lb-row .pt small{display:block;font:600 10px Inter;color:var(--mute);letter-spacing:.1em}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.gal img{width:100%;border-radius:10px;border:1px solid var(--line);display:block}
+.empty{color:var(--mute);text-align:center;padding:40px 10px;border:1px dashed var(--line);border-radius:12px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.panel h3{font:400 22px 'Bebas Neue';letter-spacing:.08em;margin-bottom:12px}
+label{display:block;font-size:12px;color:var(--mute);margin:10px 0 4px;letter-spacing:.04em}
+input{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;font:600 14px Inter}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lock{text-align:center;padding:30px 10px}
+.lock input{max-width:240px;margin:12px auto;text-align:center}
+.lock .btn{max-width:240px}
+.err{color:var(--red);font-size:13px;min-height:18px}
+.ed{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;padding:0 14px;line-height:1.7}
+.sponsors{margin-top:6px;color:var(--text);font-weight:600}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--glass);color:#04202e;padding:12px 20px;border-radius:99px;font-weight:800;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:20}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><i></i><i></i><i></i><i></i></div>
+  <h1>WINDOW<span>WARS</span></h1>
+  <p class="sub" id="eventLine"></p>
+  <div class="status" id="status"></div>
+  <p class="rules" id="rulesLine"></p>
+  <div class="prizes" id="prizes"></div>
+  <div class="prizeNote">ALL PRIZES ARE SHOP CREDIT</div>
+</header>
+
+<nav>
+  <button class="on" data-t="vote">🪟 LIVE VOTE</button>
+  <button data-t="board">🏆 LEADERBOARD</button>
+  <button data-t="photos">📸 PHOTOS</button>
+  <button data-t="host">🎛 HOST</button>
+  <a id="infoLink" href="#" target="_blank" rel="noopener">ℹ EVENT INFO</a>
+</nav>
+
+<div class="stats">
+  <div class="stat"><b id="sArtists">4</b>COMPETING<br>ARTISTS</div>
+  <div class="stat"><b>1</b>HOST<br>ARTIST</div>
+  <div class="stat"><b id="sPool">$200</b>SHOP CREDIT<br>PRIZE POOL</div>
+</div>
+
+<main>
+  <section id="vote" class="on">
+    <h2>COMPETING ARTISTS</h2>
+    <p class="note" id="voteNote"></p>
+    <div class="grid" id="artistGrid"></div>
+    <div class="host" id="hostCard"></div>
+  </section>
+
+  <section id="board">
+    <h2>LEADERBOARD</h2>
+    <p class="note">Live standings, updated as votes come in.</p>
+    <div id="lb"></div>
+  </section>
+
+  <section id="photos">
+    <h2>EVENT GALLERY & HIGHLIGHTS</h2>
+    <div class="gal" id="gal"></div>
+  </section>
+
+  <section id="host">
+    <div id="lockBox" class="panel lock">
+      <h3>HOST ACCESS REQUIRED</h3>
+      <input id="pin" type="password" inputmode="numeric" placeholder="Enter host PIN">
+      <div class="err" id="pinErr"></div>
+      <button class="btn" id="unlock">UNLOCK</button>
+    </div>
+
+    <div id="hostPanel" style="display:none">
+      <h2>HOST CONTROLS</h2>
+
+      <div class="panel">
+        <h3>OPEN / CLOSE VOTING</h3>
+        <button class="btn sec" id="toggleVote"></button>
+      </div>
+
+      <div class="panel">
+        <h3>EDIT ARTIST NAMES & PHOTOS</h3>
+        <div id="editList"></div>
+        <div class="ed">
+          <label>Host artist</label>
+          <div class="row">
+            <input id="hostName" placeholder="Host name">
+            <input id="hostPhoto" placeholder="Photo URL (optional)">
+          </div>
+        </div>
+        <div style="margin-top:14px"><button class="btn" id="saveArtists">SAVE</button></div>
+        <div class="ed">
+          <label>Add gallery photo (image URL)</label>
+          <input id="galUrl" placeholder="https://…/photo.jpg">
+          <div style="margin-top:10px" class="row">
+            <button class="btn sec" id="addPhoto">ADD PHOTO</button>
+            <button class="btn sec" id="clearPhotos">CLEAR GALLERY</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>RESET VOTES</h3>
+        <button class="btn warn" id="reset">RESET ALL VOTES</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div id="footLine"></div>
+  <div class="sponsors" id="sponsors"></div>
+</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================  EVENT CONFIG — EDIT THIS BLOCK  ===================== */
+const CONFIG = {
+  EVENT_NAME : "WindowWars",
+  FORMAT     : "Live Window Painting Battle",
+  VENUE      : "Live at ScrappyCrafts",
+  CITY       : "Phoenix, OR",
+  DATE_LINE  : "DATE & TIME TBD",       // ← e.g. "Sat, Oct 24, 2026 · 11AM–5PM"
+  RULES_LINE : "4 Artists · Windows supplied · Hosted by JawsAtak",
+  PRIZES     : ["1ST · $100","2ND · $50","3RD · $25","4TH · $25"],  // shop credit
+  INFO_URL   : "#",                     // ← link to event info / flyer page
+  SPONSORS   : [],                      // ← e.g. ["ScrappyCrafts"]
+  FOOTER     : "CANVASWARS · WINDOWWARS · PHOENIX, OR · 2026",
+  HOST_PIN   : "1234",                  // ← CHANGE THIS before the event
+  DEFAULT_ARTISTS : ["Artist 1","Artist 2","Artist 3","Artist 4"],
+  HOST_ARTIST     : "JawsAtak",
+
+  /* Shared live voting: paste a Firebase Realtime Database URL here
+     (e.g. "https://your-project-default-rtdb.firebaseio.com") with rules allowing
+     read/write on /windowwars. Leave "" for single-device preview mode. */
+  DB_URL : ""
+};
+/* ========================================================================== */
+
+const $ = id => document.getElementById(id);
+const LS = "windowwars_v2";
+const VOTED_KEY = "windowwars_voted_v2";
+const UNLOCK_KEY = "windowwars_host_v2";
+
+/* ---------- storage adapter (Firebase REST or localStorage) ---------- */
+const live = !!CONFIG.DB_URL;
+const base = live ? CONFIG.DB_URL.replace(/\/$/,"") + "/windowwars" : null;
+
+function localLoad(){ try{ return JSON.parse(localStorage.getItem(LS)) || {}; }catch(e){ return {}; } }
+function localSave(s){ try{ localStorage.setItem(LS, JSON.stringify(s)); }catch(e){} }
+
+async function loadState(){
+  let s;
+  if(live){
+    try{ const r = await fetch(base + ".json"); s = (await r.json()) || {}; }
+    catch(e){ s = localLoad(); }
+  } else s = localLoad();
+  return normalize(s);
+}
+function normalize(s){
+  s.open = s.open !== false;
+  if(!s.artists){ s.artists = {}; CONFIG.DEFAULT_ARTISTS.forEach((n,i)=>{ s.artists["a"+(i+1)] = {name:n, photo:""}; }); }
+  s.host = s.host || { name: CONFIG.HOST_ARTIST, photo: "" };
+  s.votes = s.votes || {};
+  s.gallery = Array.isArray(s.gallery) ? s.gallery : Object.values(s.gallery || {});
+  return s;
+}
+async function put(path, val){
+  if(live){ await fetch(base + "/" + path + ".json",{method:"PUT",body:JSON.stringify(val)}); }
+  else { const s = localLoad(); setDeep(s, path, val); localSave(s); }
+}
+async function inc(path){
+  if(live){ await fetch(base + "/" + path + ".json",{method:"PUT",body:JSON.stringify({".sv":{"increment":1}})}); }
+  else { const s = localLoad(); const cur = getDeep(s, path) || 0; setDeep(s, path, cur+1); localSave(s); }
+}
+function setDeep(o, path, val){ const p = path.split("/"); let c = o; p.slice(0,-1).forEach(k=>{ c[k] = c[k] || {}; c = c[k]; }); c[p[p.length-1]] = val; }
+function getDeep(o, path){ return path.split("/").reduce((c,k)=> c && c[k], o); }
+
+/* ---------- render ---------- */
+let S = normalize({});
+const ids = () => Object.keys(S.artists);
+const voted = () => { try{ return localStorage.getItem(VOTED_KEY); }catch(e){ return null; } };
+const unlocked = () => { try{ return sessionStorage.getItem(UNLOCK_KEY) === "1"; }catch(e){ return false; } };
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const bg = u => u ? `style="background-image:url('${String(u).replace(/'/g,"%27")}')"` : "";
+function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1800); }
+
+function prizePool(){
+  return CONFIG.PRIZES.reduce((sum,p)=>{ const m = (p.split("·")[1]||"").match(/\d+/); return sum + (m ? +m[0] : 0); }, 0);
+}
+
+function renderHeader(){
+  $("eventLine").textContent = `${CONFIG.FORMAT} · ${CONFIG.VENUE} · ${CONFIG.CITY}`;
+  $("rulesLine").textContent = CONFIG.RULES_LINE;
+  $("prizes").innerHTML = CONFIG.PRIZES.map(p=>{ const [a,b]=p.split(" · "); return `<b>${a} · <em>${b||""}</em></b>`; }).join("");
+  $("sArtists").textContent = ids().length;
+  $("sPool").textContent = "$" + prizePool();
+  $("infoLink").href = CONFIG.INFO_URL;
+  $("footLine").textContent = CONFIG.FOOTER;
+  $("sponsors").textContent = CONFIG.SPONSORS.join(" · ");
+  const st = $("status");
+  st.className = "status " + (S.open ? "open" : "closed");
+  st.textContent = S.open ? `VOTING OPEN · ${CONFIG.DATE_LINE}` : `VOTING CLOSED · ${CONFIG.DATE_LINE}`;
+  $("toggleVote").textContent = S.open ? "CLOSE VOTING" : "OPEN VOTING";
+}
+
+function renderVote(){
+  const mine = voted();
+  $("voteNote").textContent = (live ? "Votes are shared live with everyone viewing this page" : "Preview mode — votes stay on this device until a database is connected") + " · one vote per device";
+  $("artistGrid").innerHTML = ids().map(id=>{
+    const a = S.artists[id];
+    const disabled = !S.open || mine;
+    const label = mine === id ? "✓ YOUR VOTE" : (!S.open ? "VOTING CLOSED" : (mine ? "VOTE CAST" : "VOTE"));
+    return `<div class="card ${mine===id?"voted":""}">
+      <div class="ph" ${bg(a.photo)}>${a.photo ? "" : esc((a.name||"?").charAt(0).toUpperCase())}</div>
+      <div class="bd"><h3>${esc(a.name)}</h3>
+      <button class="btn" data-vote="${id}" ${disabled?"disabled":""}>${label}</button></div></div>`;
+  }).join("");
+  const h = S.host;
+  $("hostCard").innerHTML = `<div class="ph" ${bg(h.photo)}>${h.photo ? "" : esc((h.name||"?").charAt(0).toUpperCase())}</div>
+    <div><small>HOST ARTIST</small><h3>${esc(h.name)}</h3><p>Painting live alongside the field — not competing.</p></div>`;
+}
+
+function renderBoard(){
+  const pts = id => +(S.votes[id]||0);
+  const order = ids().sort((a,b)=>pts(b)-pts(a));
+  const max = Math.max(1, ...order.map(pts));
+  $("lb").innerHTML = order.map((id,i)=>`
+    <div class="lb-row"><div class="rk">${i+1}</div>
+      <div><div class="nm">${esc(S.artists[id].name)}</div><div class="br"><i style="width:${(pts(id)/max)*100}%"></i></div></div>
+      <div class="pt">${pts(id)}<small>PTS</small></div>
+    </div>`).join("");
+}
+
+function renderGallery(){
+  $("gal").innerHTML = S.gallery.length
+    ? S.gallery.map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" loading="lazy" alt="WindowWars photo"></a>`).join("")
+    : `<div class="empty" style="grid-column:1/-1">Photos will appear here after the event.</div>`;
+}
+
+function renderHost(){
+  const ok = unlocked();
+  $("lockBox").style.display = ok ? "none" : "block";
+  $("hostPanel").style.display = ok ? "block" : "none";
+  if(!ok) return;
+  $("editList").innerHTML = ids().map(id=>`<div class="row" style="margin-bottom:8px">
+    <input data-name="${id}" value="${esc(S.artists[id].name)}" placeholder="Artist name">
+    <input data-photo="${id}" value="${esc(S.artists[id].photo||"")}" placeholder="Photo URL (optional)"></div>`).join("");
+  $("hostName").value = S.host.name;
+  $("hostPhoto").value = S.host.photo || "";
+}
+
+function renderAll(){ renderHeader(); renderVote(); renderBoard(); renderGallery(); renderHost(); }
+
+async function refresh(keepForm){
+  const inHost = document.activeElement && document.activeElement.closest("#hostPanel");
+  S = await loadState();
+  if(inHost && keepForm){ renderHeader(); renderVote(); renderBoard(); renderGallery(); } else renderAll();
+}
+
+/* ---------- events ---------- */
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  document.querySelectorAll("section").forEach(s=>s.classList.toggle("on", s.id===b.dataset.t));
+});
+
+$("artistGrid").onclick = async e=>{
+  const id = e.target.dataset.vote; if(!id || !S.open || voted()) return;
+  try{ localStorage.setItem(VOTED_KEY, id); }catch(err){}
+  await inc("votes/" + id);
+  toast("Vote counted!"); await refresh();
+};
+
+$("unlock").onclick = ()=>{
+  if($("pin").value === CONFIG.HOST_PIN){ try{ sessionStorage.setItem(UNLOCK_KEY,"1"); }catch(e){} $("pinErr").textContent=""; renderHost(); }
+  else $("pinErr").textContent = "Incorrect PIN";
+};
+$("pin").onkeydown = e=>{ if(e.key==="Enter") $("unlock").click(); };
+
+$("toggleVote").onclick = async ()=>{ await put("open", !S.open); await refresh(); toast(S.open?"Voting open":"Voting closed"); };
+
+$("saveArtists").onclick = async ()=>{
+  const a = {};
+  ids().forEach(id=>{
+    a[id] = {
+      name: document.querySelector(`[data-name="${id}"]`).value.trim() || S.artists[id].name,
+      photo: document.querySelector(`[data-photo="${id}"]`).value.trim()
+    };
+  });
+  await put("artists", a);
+  await put("host", { name: $("hostName").value.trim() || CONFIG.HOST_ARTIST, photo: $("hostPhoto").value.trim() });
+  toast("Saved"); await refresh();
+};
+
+$("addPhoto").onclick = async ()=>{
+  const u = $("galUrl").value.trim(); if(!u) return;
+  await put("gallery", [...S.gallery, u]); $("galUrl").value=""; toast("Photo added"); await refresh();
+};
+$("clearPhotos").onclick = async ()=>{ if(confirm("Clear the whole gallery?")){ await put("gallery", []); await refresh(); } };
+
+$("reset").onclick = async ()=>{
+  if(!confirm("Reset ALL votes?")) return;
+  await put("votes", {});
+  try{ localStorage.removeItem(VOTED_KEY); }catch(e){}
+  toast("Votes reset"); await refresh();
+};
+
+/* ---------- falling leaves ---------- */
+(function(){
+  const set = ["🍂","🍁","🍂","🍃","🍁"];
+  for(let i=0;i<10;i++){
+    const l = document.createElement("span");
+    l.className = "leaf";
+    l.textContent = set[i % set.length];
+    l.style.left = (Math.random()*100) + "vw";
+    l.style.fontSize = (16 + Math.random()*14) + "px";
+    l.style.animationDuration = (14 + Math.random()*14) + "s";
+    l.style.animationDelay = (-Math.random()*20) + "s";
+    document.body.appendChild(l);
+  }
+})();
+
+/* ---------- boot ---------- */
+(async function(){
+  await refresh();
+  if(live) setInterval(()=>refresh(true), 5000);
+})();
+</script>
+</body>
+</html>
