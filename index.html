@@ -37,6 +37,19 @@ header{text-align:center;padding:34px 16px 20px}
 .logo i{display:block;height:22px;background:linear-gradient(135deg,rgba(127,216,255,.55),rgba(43,159,216,.15))}
 h1{font-family:'Bebas Neue',Impact,sans-serif;font-size:clamp(54px,14vw,110px);letter-spacing:.06em;line-height:.95;text-shadow:0 4px 30px rgba(212,87,42,.45)}
 h1 span{color:var(--glass);display:block;font-size:.42em;letter-spacing:.35em;margin-top:6px;text-shadow:none}
+
+/* Flyer Image Styling */
+.event-flyer {
+  max-width: 100%;
+  width: 380px;
+  height: auto;
+  margin: 20px auto 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  display: block;
+}
+
 .sub{color:var(--mute);margin-top:12px;font-size:14px}
 .status{display:inline-block;margin-top:14px;padding:7px 16px;border-radius:99px;font-weight:800;font-size:13px;letter-spacing:.08em}
 .status.open{background:rgba(143,214,148,.14);color:var(--green);border:1px solid var(--green)}
@@ -46,21 +59,6 @@ h1 span{color:var(--glass);display:block;font-size:.42em;letter-spacing:.35em;ma
 .prizes b{background:var(--panel2);border:1px solid var(--line);padding:6px 12px;border-radius:8px;font-size:12px;letter-spacing:.06em}
 .prizes b em{color:var(--amber);font-style:normal}
 .prizeNote{font-size:11px;color:var(--mute);letter-spacing:.14em;margin-top:8px}
-
-/* ---------- Flyer Inline Card ---------- */
-.flyer-wrapper{margin-top:20px;display:flex;justify-content:center}
-.flyer-card{display:inline-block;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;max-width:380px;width:100%;cursor:pointer;transition:transform .2s ease,border-color .2s ease;box-shadow:0 8px 30px rgba(0,0,0,.5),0 0 20px rgba(212,87,42,.15)}
-.flyer-card:hover{transform:translateY(-3px);border-color:var(--glass)}
-.flyer-card img{width:100%;height:auto;border-radius:8px;display:block;border:1px solid var(--line)}
-.flyer-caption{margin-top:8px;font-size:11px;color:var(--mute);letter-spacing:.1em;font-weight:800}
-
-/* ---------- Flyer Modal / Lightbox Overlay ---------- */
-.flyer-modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px}
-.flyer-modal.open{display:flex}
-.flyer-modal-content{position:relative;max-width:540px;width:100%}
-.flyer-modal-content img{width:100%;height:auto;max-height:85vh;object-fit:contain;border-radius:12px;border:1px solid var(--line);box-shadow:0 10px 40px rgba(0,0,0,.9)}
-.flyer-modal-close{position:absolute;top:-14px;right:-14px;background:var(--ember);color:#fff;border:0;width:32px;height:32px;border-radius:50%;font-weight:800;cursor:pointer;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,.5)}
-
 nav{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:10px 12px;position:sticky;top:0;background:rgba(20,10,5,.92);backdrop-filter:blur(8px);z-index:5;border-bottom:1px solid var(--line)}
 nav button,nav a{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:10px 16px;border-radius:8px;font:700 13px Inter;letter-spacing:.05em;cursor:pointer;text-decoration:none}
 nav button.on{background:var(--glass);color:#04202e;border-color:var(--glass)}
@@ -119,28 +117,25 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
 <header>
   <div class="logo"><i></i><i></i><i></i><i></i></div>
   <h1>WINDOW<span>WARS</span></h1>
+  
+  <!-- EVENT FLYER IMAGE -->
+  <a href="windowwars1.png" target="_blank" rel="noopener">
+    <img src="windowwars1.png" alt="Window Wars Event Flyer" class="event-flyer">
+  </a>
+
   <p class="sub" id="eventLine"></p>
   <div class="status" id="status"></div>
   <p class="rules" id="rulesLine"></p>
   <div class="prizes" id="prizes"></div>
   <div class="prizeNote">ALL PRIZES ARE SHOP CREDIT</div>
-
-  <!-- Header Flyer Card -->
-  <div class="flyer-wrapper">
-    <div class="flyer-card" id="flyerCardHeader">
-      <img id="flyerImgHeader" src="" alt="Window Wars Event Flyer">
-      <div class="flyer-caption">🔍 CLICK FLYER TO ENLARGE</div>
-    </div>
-  </div>
 </header>
 
 <nav>
   <button class="on" data-t="vote">🪟 LIVE VOTE</button>
-  <button id="openFlyerBtn">🖼 EVENT FLYER</button>
   <button data-t="board">🏆 LEADERBOARD</button>
   <button data-t="photos">📸 PHOTOS</button>
   <button data-t="host">🎛 HOST</button>
-  <a id="infoLink" href="#" target="_blank" rel="noopener">ℹ EVENT INFO</a>
+  <a id="infoLink" href="flyer.png" target="_blank" rel="noopener">ℹ EVENT INFO</a>
 </nav>
 
 <div class="stats">
@@ -185,12 +180,6 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
       </div>
 
       <div class="panel">
-        <h3>EDIT EVENT FLYER</h3>
-        <label>Flyer PNG Image URL / File Path</label>
-        <input id="flyerInput" placeholder="windowwars1.png or https://…/flyer.png">
-      </div>
-
-      <div class="panel">
         <h3>EDIT ARTIST NAMES & PHOTOS</h3>
         <div id="editList"></div>
         <div class="ed">
@@ -219,14 +208,6 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
   </section>
 </main>
 
-<!-- Fullscreen Flyer Modal -->
-<div class="flyer-modal" id="flyerModal">
-  <div class="flyer-modal-content">
-    <button class="flyer-modal-close" id="closeFlyerModal">&times;</button>
-    <img id="modalFlyerImg" src="" alt="Window Wars Flyer Fullscreen">
-  </div>
-</div>
-
 <footer>
   <div id="footLine"></div>
   <div class="sponsors" id="sponsors"></div>
@@ -243,14 +224,12 @@ const CONFIG = {
   DATE_LINE  : "DATE & TIME TBD",
   RULES_LINE : "4 Artists · Windows supplied · Hosted by JawsAtak",
   PRIZES     : ["1ST · $100","2ND · $50","3RD · $25","4TH · $25"],
-  INFO_URL   : "#",
-  FLYER_URL  : "windowwars1.png",
-  SPONSORS   : ["ScrappyCraft", "QuarkForce"],
+  INFO_URL   : "flyer.png",
+  SPONSORS   : [],
   FOOTER     : "CANVASWARS · WINDOWWARS · PHOENIX, OR · 2026",
   HOST_PIN   : "1234",
-  DEFAULT_ARTISTS : ["Oliver Felix","Bernard Lawrence","Micha BlackLight","Fast1"],
+  DEFAULT_ARTISTS : ["Oliver Felix", "Bernard Lawrence", "Micha Blacklight", "Fast1"],
   HOST_ARTIST     : "JawsAtak",
-
   DB_URL : ""
 };
 /* ========================================================================== */
@@ -260,7 +239,7 @@ const LS = "windowwars_v2";
 const VOTED_KEY = "windowwars_voted_v2";
 const UNLOCK_KEY = "windowwars_host_v2";
 
-/* ---------- storage adapter ---------- */
+/* ---------- storage adapter (Firebase REST or localStorage) ---------- */
 const live = !!CONFIG.DB_URL;
 const base = live ? CONFIG.DB_URL.replace(/\/$/,"") + "/windowwars" : null;
 
@@ -277,7 +256,6 @@ async function loadState(){
 }
 function normalize(s){
   s.open = s.open !== false;
-  s.flyerUrl = s.flyerUrl || CONFIG.FLYER_URL;
   if(!s.artists){ s.artists = {}; CONFIG.DEFAULT_ARTISTS.forEach((n,i)=>{ s.artists["a"+(i+1)] = {name:n, photo:""}; }); }
   s.host = s.host || { name: CONFIG.HOST_ARTIST, photo: "" };
   s.votes = s.votes || {};
@@ -321,16 +299,6 @@ function renderHeader(){
   st.className = "status " + (S.open ? "open" : "closed");
   st.textContent = S.open ? `VOTING OPEN · ${CONFIG.DATE_LINE}` : `VOTING CLOSED · ${CONFIG.DATE_LINE}`;
   $("toggleVote").textContent = S.open ? "CLOSE VOTING" : "OPEN VOTING";
-
-  // Update Flyer Images
-  const fUrl = S.flyerUrl || CONFIG.FLYER_URL;
-  if (fUrl) {
-    $("flyerImgHeader").src = fUrl;
-    $("modalFlyerImg").src = fUrl;
-    $("flyerCardHeader").style.display = "inline-block";
-  } else {
-    $("flyerCardHeader").style.display = "none";
-  }
 }
 
 function renderVote(){
@@ -377,7 +345,6 @@ function renderHost(){
     <input data-photo="${id}" value="${esc(S.artists[id].photo||"")}" placeholder="Photo URL (optional)"></div>`).join("");
   $("hostName").value = S.host.name;
   $("hostPhoto").value = S.host.photo || "";
-  $("flyerInput").value = S.flyerUrl || "";
 }
 
 function renderAll(){ renderHeader(); renderVote(); renderBoard(); renderGallery(); renderHost(); }
@@ -389,23 +356,10 @@ async function refresh(keepForm){
 }
 
 /* ---------- events ---------- */
-document.querySelectorAll("nav button").forEach(b=>{
-  if (b.dataset.t) {
-    b.onclick=()=>{
-      document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
-      document.querySelectorAll("section").forEach(s=>s.classList.toggle("on", s.id===b.dataset.t));
-    };
-  }
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  document.querySelectorAll("section").forEach(s=>s.classList.toggle("on", s.id===b.dataset.t));
 });
-
-// Lightbox Modal Controls
-const showModal = () => $("flyerModal").classList.add("open");
-const hideModal = () => $("flyerModal").classList.remove("open");
-
-$("flyerCardHeader").onclick = showModal;
-$("openFlyerBtn").onclick = showModal;
-$("closeFlyerModal").onclick = hideModal;
-$("flyerModal").onclick = e => { if (e.target === $("flyerModal")) hideModal(); };
 
 $("artistGrid").onclick = async e=>{
   const id = e.target.dataset.vote; if(!id || !S.open || voted()) return;
@@ -432,7 +386,6 @@ $("saveArtists").onclick = async ()=>{
   });
   await put("artists", a);
   await put("host", { name: $("hostName").value.trim() \vert{}\vert{} CONFIG.HOST_ARTIST, photo: $("hostPhoto").value.trim() });
-  await put("flyerUrl", $("flyerInput").value.trim());
   toast("Saved"); await refresh();
 };
 
