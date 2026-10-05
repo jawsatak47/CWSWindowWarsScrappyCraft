@@ -52,6 +52,21 @@ nav button.on{background:var(--glass);color:#04202e;border-color:var(--glass)}
 .stats{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:22px 12px}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 22px;text-align:center;font-size:11px;letter-spacing:.12em;color:var(--mute)}
 .stat b{display:block;font:400 34px 'Bebas Neue';color:var(--glass);letter-spacing:.04em}
+
+/* ---------- Flyer Section Styling ---------- */
+.flyer-box{margin:20px 0 30px;text-align:center}
+.flyer-card{display:inline-block;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;max-width:440px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.5),0 0 20px rgba(212,87,42,.15);cursor:pointer;transition:transform .2s ease,border-color .2s ease}
+.flyer-card:hover{transform:translateY(-3px);border-color:var(--glass)}
+.flyer-img{width:100%;height:auto;border-radius:10px;display:block;border:1px solid var(--line)}
+.flyer-hint{margin-top:8px;font-size:11px;color:var(--mute);letter-spacing:.08em;font-weight:600}
+
+/* ---------- Flyer Lightbox Modal ---------- */
+.modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px}
+.modal.open{display:flex}
+.modal-content{position:relative;max-width:550px;width:100%}
+.modal-content img{width:100%;height:auto;max-height:85vh;object-fit:contain;border-radius:12px;border:1px solid var(--line);box-shadow:0 10px 40px rgba(0,0,0,.8)}
+.modal-close{position:absolute;top:-14px;right:-14px;background:var(--ember);color:#fff;border:0;width:32px;height:32px;border-radius:50%;font-weight:800;cursor:pointer;font-size:16px;box-shadow:0 2px 10px rgba(0,0,0,.5)}
+
 main{max-width:1000px;margin:0 auto;padding:0 14px}
 section{display:none}section.on{display:block}
 h2{font:400 30px 'Bebas Neue';letter-spacing:.1em;margin:20px 0 6px}
@@ -113,6 +128,7 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
 
 <nav>
   <button class="on" data-t="vote">🪟 LIVE VOTE</button>
+  <button data-t="flyerNav">🖼 FLYER</button>
   <button data-t="board">🏆 LEADERBOARD</button>
   <button data-t="photos">📸 PHOTOS</button>
   <button data-t="host">🎛 HOST</button>
@@ -127,10 +143,29 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
 
 <main>
   <section id="vote" class="on">
+    <!-- Featured Flyer Card -->
+    <div class="flyer-box" id="flyerContainer">
+      <div class="flyer-card" id="flyerCard">
+        <img id="flyerImg" class="flyer-img" src="" alt="Window Wars Event Flyer">
+        <div class="flyer-hint">🔍 CLICK FLYER TO ENLARGE</div>
+      </div>
+    </div>
+
     <h2>COMPETING ARTISTS</h2>
     <p class="note" id="voteNote"></p>
     <div class="grid" id="artistGrid"></div>
     <div class="host" id="hostCard"></div>
+  </section>
+
+  <!-- Dedicated Flyer Tab -->
+  <section id="flyerNav">
+    <h2>OFFICIAL EVENT FLYER</h2>
+    <p class="note">Click image to view full screen.</p>
+    <div class="flyer-box">
+      <div class="flyer-card" id="flyerCardTab">
+        <img id="flyerImgTab" class="flyer-img" src="" alt="Window Wars Event Flyer">
+      </div>
+    </div>
   </section>
 
   <section id="board">
@@ -158,6 +193,12 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
       <div class="panel">
         <h3>OPEN / CLOSE VOTING</h3>
         <button class="btn sec" id="toggleVote"></button>
+      </div>
+
+      <div class="panel">
+        <h3>EDIT EVENT FLYER</h3>
+        <label>Flyer Image URL</label>
+        <input id="flyerUrlInput" placeholder="windowwars1">
       </div>
 
       <div class="panel">
@@ -189,6 +230,14 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
   </section>
 </main>
 
+<!-- Lightbox Modal -->
+<div class="modal" id="flyerModal">
+  <div class="modal-content">
+    <button class="modal-close" id="closeModal">&times;</button>
+    <img id="modalFlyerImg" src="" alt="Window Wars Flyer Fullscreen">
+  </div>
+</div>
+
 <footer>
   <div id="footLine"></div>
   <div class="sponsors" id="sponsors"></div>
@@ -201,15 +250,16 @@ const CONFIG = {
   EVENT_NAME : "WindowWars",
   FORMAT     : "Live Window Painting Battle",
   VENUE      : "Live at ScrappyCrafts",
-  CITY       : "511 N main Phoenix, OR",
-  DATE_LINE  : "Froday Oct.9 4pm - 7pm",       // ← e.g. "Sat, Oct 24, 2026 · 11AM–5PM"
+  CITY       : "Phoenix, OR",
+  DATE_LINE  : "DATE & TIME TBD",       // ← e.g. "Sat, Oct 24, 2026 · 11AM–5PM"
   RULES_LINE : "4 Artists · Windows supplied · Hosted by JawsAtak",
   PRIZES     : ["1ST · $100","2ND · $50","3RD · $25","4TH · $25"],  // shop credit
   INFO_URL   : "#",                     // ← link to event info / flyer page
-  SPONSORS   : [ScrappyCraft, QuarkForce],                      // ← e.g. ["ScrappyCrafts"]
+  FLYER_URL  : "https://via.placeholder.com/600x800/26160e/7fd8ff?text=Window+Wars+Flyer", // ← PASTE YOUR FLYER IMAGE URL HERE
+  SPONSORS   : [],                      // ← e.g. ["ScrappyCrafts"]
   FOOTER     : "CANVASWARS · WINDOWWARS · PHOENIX, OR · 2026",
   HOST_PIN   : "1234",                  // ← CHANGE THIS before the event
-  DEFAULT_ARTISTS : ["Olive Felix","Bernard Lawrence","Micha Blacklight","Fast1"],
+  DEFAULT_ARTISTS : ["Artist 1","Artist 2","Artist 3","Artist 4"],
   HOST_ARTIST     : "JawsAtak",
 
   /* Shared live voting: paste a Firebase Realtime Database URL here
@@ -241,6 +291,7 @@ async function loadState(){
 }
 function normalize(s){
   s.open = s.open !== false;
+  s.flyerUrl = s.flyerUrl || CONFIG.FLYER_URL;
   if(!s.artists){ s.artists = {}; CONFIG.DEFAULT_ARTISTS.forEach((n,i)=>{ s.artists["a"+(i+1)] = {name:n, photo:""}; }); }
   s.host = s.host || { name: CONFIG.HOST_ARTIST, photo: "" };
   s.votes = s.votes || {};
@@ -284,6 +335,17 @@ function renderHeader(){
   st.className = "status " + (S.open ? "open" : "closed");
   st.textContent = S.open ? `VOTING OPEN · ${CONFIG.DATE_LINE}` : `VOTING CLOSED · ${CONFIG.DATE_LINE}`;
   $("toggleVote").textContent = S.open ? "CLOSE VOTING" : "OPEN VOTING";
+
+  // Render Flyer Images
+  const flyerSrc = S.flyerUrl || CONFIG.FLYER_URL;
+  if(flyerSrc) {
+    $("flyerContainer").style.display = "block";
+    $("flyerImg").src = flyerSrc;
+    $("flyerImgTab").src = flyerSrc;
+    $("modalFlyerImg").src = flyerSrc;
+  } else {
+    $("flyerContainer").style.display = "none";
+  }
 }
 
 function renderVote(){
@@ -330,6 +392,7 @@ function renderHost(){
     <input data-photo="${id}" value="${esc(S.artists[id].photo||"")}" placeholder="Photo URL (optional)"></div>`).join("");
   $("hostName").value = S.host.name;
   $("hostPhoto").value = S.host.photo || "";
+  $("flyerUrlInput").value = S.flyerUrl || "";
 }
 
 function renderAll(){ renderHeader(); renderVote(); renderBoard(); renderGallery(); renderHost(); }
@@ -345,6 +408,15 @@ document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
   document.querySelectorAll("section").forEach(s=>s.classList.toggle("on", s.id===b.dataset.t));
 });
+
+// Lightbox Modal events
+const openModal = () => $("flyerModal").classList.add("open");
+const closeModal = () => $("flyerModal").classList.remove("open");
+
+$("flyerCard").onclick = openModal;
+$("flyerCardTab").onclick = openModal;
+$("closeModal").onclick = closeModal;
+$("flyerModal").onclick = e => { if(e.target === $("flyerModal")) closeModal(); };
 
 $("artistGrid").onclick = async e=>{
   const id = e.target.dataset.vote; if(!id || !S.open || voted()) return;
@@ -370,7 +442,8 @@ $("saveArtists").onclick = async ()=>{
     };
   });
   await put("artists", a);
-  await put("host", { name: $("hostName").value.trim() || CONFIG.HOST_ARTIST, photo: $("hostPhoto").value.trim() });
+  await put("host", { name: $("hostName").value.trim() \vert{}\vert{} CONFIG.HOST_ARTIST, photo: $("hostPhoto").value.trim() });
+  await put("flyerUrl", $("flyerUrlInput").value.trim());
   toast("Saved"); await refresh();
 };
 
