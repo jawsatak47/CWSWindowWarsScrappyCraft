@@ -200,7 +200,7 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
 </footer>
 <div class="toast" id="toast"></div>
 
-<!-- Firebase Modular SDK via CDN -->
+<!-- Firebase Realtime Database Modular SDK via CDN -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics.js";
@@ -229,7 +229,7 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
     FLYER      : "windowwars1.png"
   };
 
-  /* Firebase Configuration initialized with your project details */
+  /* Firebase Configuration for project cws541 */
   const firebaseConfig = {
     apiKey: "AIzaSyAUZoR8VtQFpBwjhjb86ZarmJAoawIdvxs",
     authDomain: "cws541.firebaseapp.com",
@@ -269,16 +269,38 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
   function normalize(s){
     s = s || {};
     s.open = s.open !== false;
-    if(!s.artists){ s.artists = {}; CONFIG.ARTISTS.forEach((a,i)=>{ s.artists["a"+(i+1)] = {name:a.name}; }); }
-    Object.keys(s.artists).forEach(id=>{ 
-      const ref = CONFIG.ARTISTS[+id.slice(1)-1] || {};
-      s.artists[id].photo = ref.photo || ""; 
-      s.artists[id].social = ref.social || "";
-    });
+    
+    if(!s.artists || Object.keys(s.artists).length === 0){ 
+      s.artists = {}; 
+      CONFIG.ARTISTS.forEach((a,i)=>{ s.artists["a"+(i+1)] = { name: a.name, photo: a.photo || "", social: a.social || "" }; }); 
+    } else {
+      Object.keys(s.artists).forEach(id=>{ 
+        const refIdx = +id.slice(1)-1;
+        const ref = CONFIG.ARTISTS[refIdx] || {};
+        s.artists[id].photo = s.artists[id].photo || ref.photo || ""; 
+        s.artists[id].social = s.artists[id].social || ref.social || "";
+      });
+    }
+
     s.host = { name: (s.host && s.host.name) || CONFIG.HOST.name, photo: CONFIG.HOST.photo || "", social: CONFIG.HOST.social || "" };
     s.votes = s.votes || {};
     s.gallery = Array.isArray(s.gallery) ? s.gallery : Object.values(s.gallery || {});
     return s;
+  }
+
+  /* Seed Firebase if database is fresh or empty */
+  function seedInitialData() {
+    const initialArtists = {};
+    CONFIG.ARTISTS.forEach((a,i)=>{ 
+      initialArtists["a"+(i+1)] = { name: a.name, photo: a.photo || "", social: a.social || "" }; 
+    });
+    set(dbRef, {
+      open: true,
+      artists: initialArtists,
+      host: { name: CONFIG.HOST.name, photo: CONFIG.HOST.photo || "", social: CONFIG.HOST.social || "" },
+      votes: {},
+      gallery: []
+    });
   }
 
   /* ===================== RENDER FUNCTIONS ===================== */
@@ -356,12 +378,15 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
 
   function renderAll(){ renderHeader(); renderVote(); renderBoard(); renderGallery(); renderHost(); }
 
-  /* ===================== REAL-TIME FIREBASE SUBSCRIPTION ===================== */
+  /* ===================== REAL-TIME FIREBASE LISTENER ===================== */
   onValue(dbRef, (snapshot) => {
     const data = snapshot.val();
+    if (data === null) {
+      seedInitialData();
+      return;
+    }
     S = normalize(data);
     
-    // Prevent overriding inputs if the host is actively typing
     const inHost = document.activeElement && document.activeElement.closest("#hostPanel");
     if(inHost) {
       renderHeader(); renderVote(); renderBoard(); renderGallery();
@@ -370,7 +395,7 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
     }
   });
 
-  /* ===================== EVENT HANDLERS ===================== */
+  /* ===================== UI & EVENT HANDLERS ===================== */
   document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
     document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
     document.querySelectorAll("section").forEach(s=>s.classList.toggle("on", s.id===b.dataset.t));
@@ -401,9 +426,19 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
 
   $("saveArtists").onclick = async () => {
     const a = {};
-    ids().forEach(id => { a[id] = { name: document.querySelector(`[data-name="${id}"]`).value.trim() || S.artists[id].name }; });
+    ids().forEach(id => { 
+      a[id] = { 
+        name: document.querySelector(`[data-name="${id}"]`).value.trim() || S.artists[id].name,
+        photo: S.artists[id].photo || "",
+        social: S.artists[id].social || ""
+      }; 
+    });
     await set(ref(db, 'windowwars/artists'), a);
-    await set(ref(db, 'windowwars/host'), { name: $("hostName").value.trim() || CONFIG.HOST.name });
+    await set(ref(db, 'windowwars/host'), { 
+      name: $("hostName").value.trim() || CONFIG.HOST.name,
+      photo: S.host.photo || "",
+      social: S.host.social || ""
+    });
     toast("Saved");
   };
 
