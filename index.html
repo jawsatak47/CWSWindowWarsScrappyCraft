@@ -200,239 +200,248 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:40px;paddin
 </footer>
 <div class="toast" id="toast"></div>
 
-<script>
-/* =====================  EVENT CONFIG — EDIT THIS BLOCK  ===================== */
-const CONFIG = {
-  EVENT_NAME : "WindowWars",
-  FORMAT     : "Live Window Painting Battle",
-  VENUE      : "Live at ScrappyCrafts",
-  CITY       : "Phoenix, OR",
-  DATE_LINE  : "4pm-7pm Friday October 9th",       // ← e.g. "Sat, Oct 24, 2026 · 11AM–5PM"
-  RULES_LINE : "4 Artists · Windows supplied · Hosted by JawsAtak",
-  PRIZES     : ["1ST · $100","2ND · $50","3RD · $25","4TH · $25"],  // shop credit
-  INFO_URL   : "windowwars1.png",       // ← EVENT INFO button opens the flyer; swap for a page link if you like
-  SPONSORS   : [],                      // ← e.g. ["ScrappyCrafts"]
-  FOOTER     : "CANVASWARS · WINDOWWARS · PHOENIX, OR · 2026",
-  HOST_PIN   : "1234",                  // ← CHANGE THIS before the event
-  /* Artist & host photos & social profiles: Add Instagram or other profile URLs here */
-  ARTISTS : [
-    { name:"Oliver Felix",     photo:"Oliver felix.jpg",      social:"https://www.instagram.com/oliverfernandofelix/" },
-    { name:"Bernard Lawrence", photo:"bernard lawrence.jpg",  social:"https://www.facebook.com/burnie.lawrence" },
-    { name:"Micha Blacklight", photo:"micha blacklight.jpg",  social:"https://www.facebook.com/micah.blacklight" },
-    { name:"Phast1",            photo:"fast2.jpg",             social:"https://www.facebook.com/photo?fbid=1770322337969475&set=pcb.1770322421302800" }
-  ],
-  HOST : { name:"JawsAtak", photo:"jawsatak.jpg", social:"https://jawsgraffiti.com" },
-  FLYER      : "windowwars1.png",       // ← keep this file in the same folder as index.html
+<!-- Firebase Modular SDK via CDN -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics.js";
+  import { getDatabase, ref, set, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
 
-  /* Shared live voting: paste a Firebase Realtime Database URL here
-     (e.g. "https://your-project-default-rtdb.firebaseio.com") with rules allowing
-     read/write on /windowwars. Leave "" for single-device preview mode. */
-  DB_URL : ""
-};
-/* ========================================================================== */
+  /* ===================== EVENT CONFIGURATION ===================== */
+  const CONFIG = {
+    EVENT_NAME : "WindowWars",
+    FORMAT     : "Live Window Painting Battle",
+    VENUE      : "Live at ScrappyCrafts",
+    CITY       : "Phoenix, OR",
+    DATE_LINE  : "4pm-7pm Friday October 9th",
+    RULES_LINE : "4 Artists · Windows supplied · Hosted by JawsAtak",
+    PRIZES     : ["1ST · $100","2ND · $50","3RD · $25","4TH · $25"],
+    INFO_URL   : "windowwars1.png",
+    SPONSORS   : [],
+    FOOTER     : "CANVASWARS · WINDOWWARS · PHOENIX, OR · 2026",
+    HOST_PIN   : "1234",
+    ARTISTS : [
+      { name:"Oliver Felix",     photo:"Oliver felix.jpg",      social:"https://www.instagram.com/oliverfernandofelix/" },
+      { name:"Bernard Lawrence", photo:"bernard lawrence.jpg",  social:"https://www.facebook.com/burnie.lawrence" },
+      { name:"Micha Blacklight", photo:"micha blacklight.jpg",  social:"https://www.facebook.com/micah.blacklight" },
+      { name:"Phast1",            photo:"fast2.jpg",             social:"https://www.facebook.com/photo?fbid=1770322337969475&set=pcb.1770322421302800" }
+    ],
+    HOST : { name:"JawsAtak", photo:"jawsatak.jpg", social:"https://jawsgraffiti.com" },
+    FLYER      : "windowwars1.png"
+  };
 
-const $ = id => document.getElementById(id);
-const LS = "windowwars_v2";
-const VOTED_KEY = "windowwars_voted_v2";
-const UNLOCK_KEY = "windowwars_host_v2";
+  /* Firebase Configuration initialized with your project details */
+  const firebaseConfig = {
+    apiKey: "AIzaSyAUZoR8VtQFpBwjhjb86ZarmJAoawIdvxs",
+    authDomain: "cws541.firebaseapp.com",
+    projectId: "cws541",
+    storageBucket: "cws541.firebasestorage.app",
+    messagingSenderId: "217488082388",
+    appId: "1:217488082388:web:26e3e6e16c889a2ef98241",
+    measurementId: "G-ZZZR0BTRGB",
+    databaseURL: "https://cws541-default-rtdb.firebaseio.com"
+  };
 
-/* ---------- storage adapter (Firebase REST or localStorage) ---------- */
-const live = !!CONFIG.DB_URL;
-const base = live ? CONFIG.DB_URL.replace(/\/$/,"") + "/windowwars" : null;
+  /* ===================== INITIALIZATION ===================== */
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getDatabase(app);
+  const dbRef = ref(db, 'windowwars');
 
-function localLoad(){ try{ return JSON.parse(localStorage.getItem(LS)) || {}; }catch(e){ return {}; } }
-function localSave(s){ try{ localStorage.setItem(LS, JSON.stringify(s)); }catch(e){} }
+  const $ = id => document.getElementById(id);
+  const VOTED_KEY = "windowwars_voted_v2";
+  const UNLOCK_KEY = "windowwars_host_v2";
 
-async function loadState(){
-  let s;
-  if(live){
-    try{ const r = await fetch(base + ".json"); s = (await r.json()) || {}; }
-    catch(e){ s = localLoad(); }
-  } else s = localLoad();
-  return normalize(s);
-}
-function normalize(s){
-  s.open = s.open !== false;
-  if(!s.artists){ s.artists = {}; CONFIG.ARTISTS.forEach((a,i)=>{ s.artists["a"+(i+1)] = {name:a.name}; }); }
-  Object.keys(s.artists).forEach(id=>{ 
-    const ref = CONFIG.ARTISTS[+id.slice(1)-1] || {};
-    s.artists[id].photo = ref.photo || ""; 
-    s.artists[id].social = ref.social || "";
-  });
-  s.host = { name: (s.host && s.host.name) || CONFIG.HOST.name, photo: CONFIG.HOST.photo || "", social: CONFIG.HOST.social || "" };
-  s.votes = s.votes || {};
-  s.gallery = Array.isArray(s.gallery) ? s.gallery : Object.values(s.gallery || {});
-  return s;
-}
-async function put(path, val){
-  if(live){ await fetch(base + "/" + path + ".json",{method:"PUT",body:JSON.stringify(val)}); }
-  else { const s = localLoad(); setDeep(s, path, val); localSave(s); }
-}
-async function inc(path){
-  if(live){ await fetch(base + "/" + path + ".json",{method:"PUT",body:JSON.stringify({".sv":{"increment":1}})}); }
-  else { const s = localLoad(); const cur = getDeep(s, path) || 0; setDeep(s, path, cur+1); localSave(s); }
-}
-function setDeep(o, path, val){ const p = path.split("/"); let c = o; p.slice(0,-1).forEach(k=>{ c[k] = c[k] || {}; c = c[k]; }); c[p[p.length-1]] = val; }
-function getDeep(o, path){ return path.split("/").reduce((c,k)=> c && c[k], o); }
+  let S = normalize({});
 
-/* ---------- render ---------- */
-let S = normalize({});
-const ids = () => Object.keys(S.artists);
-const voted = () => { try{ return localStorage.getItem(VOTED_KEY); }catch(e){ return null; } };
-const unlocked = () => { try{ return sessionStorage.getItem(UNLOCK_KEY) === "1"; }catch(e){ return false; } };
-const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const phInner = (name, photo, social) => {
-  const content = `<span>${esc((name||"?").charAt(0).toUpperCase())}</span>` + (photo ? `<img src="${esc(photo)}" alt="" onerror="this.remove()">` : "");
-  return social ? `<a href="${esc(social)}" target="_blank" rel="noopener" style="display:contents">${content}</a>` : content;
-};
-function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1800); }
+  const ids = () => Object.keys(S.artists);
+  const voted = () => { try{ return localStorage.getItem(VOTED_KEY); }catch(e){ return null; } };
+  const unlocked = () => { try{ return sessionStorage.getItem(UNLOCK_KEY) === "1"; }catch(e){ return false; } };
+  const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-function prizePool(){
-  return CONFIG.PRIZES.reduce((sum,p)=>{ const m = (p.split("·")[1]||"").match(/\d+/); return sum + (m ? +m[0] : 0); }, 0);
-}
+  const phInner = (name, photo, social) => {
+    const content = `<span>${esc((name||"?").charAt(0).toUpperCase())}</span>` + (photo ? `<img src="${esc(photo)}" alt="" onerror="this.remove()">` : "");
+    return social ? `<a href="${esc(social)}" target="_blank" rel="noopener" style="display:contents">${content}</a>` : content;
+  };
 
-function renderHeader(){
-  $("eventLine").textContent = `${CONFIG.FORMAT} · ${CONFIG.VENUE} · ${CONFIG.CITY}`;
-  $("rulesLine").textContent = CONFIG.RULES_LINE;
-  $("prizes").innerHTML = CONFIG.PRIZES.map(p=>{ const [a,b]=p.split(" · "); return `<b>${a} · <em>${b||""}</em></b>`; }).join("");
-  $("sArtists").textContent = ids().length;
-  $("sPool").textContent = "$" + prizePool();
-  $("infoLink").href = CONFIG.INFO_URL;
-  if(CONFIG.FLYER){
-    const img = $("flyerImg"), a = $("flyerLink");
-    if(!img.getAttribute("src")){
-      img.onload = () => { a.style.display = "block"; };
-      img.onerror = () => { a.style.display = "none"; };
-      img.src = CONFIG.FLYER; a.href = CONFIG.FLYER;
+  function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1800); }
+  function prizePool(){ return CONFIG.PRIZES.reduce((sum,p)=>{ const m = (p.split("·")[1]||"").match(/\d+/); return sum + (m ? +m[0] : 0); }, 0); }
+
+  function normalize(s){
+    s = s || {};
+    s.open = s.open !== false;
+    if(!s.artists){ s.artists = {}; CONFIG.ARTISTS.forEach((a,i)=>{ s.artists["a"+(i+1)] = {name:a.name}; }); }
+    Object.keys(s.artists).forEach(id=>{ 
+      const ref = CONFIG.ARTISTS[+id.slice(1)-1] || {};
+      s.artists[id].photo = ref.photo || ""; 
+      s.artists[id].social = ref.social || "";
+    });
+    s.host = { name: (s.host && s.host.name) || CONFIG.HOST.name, photo: CONFIG.HOST.photo || "", social: CONFIG.HOST.social || "" };
+    s.votes = s.votes || {};
+    s.gallery = Array.isArray(s.gallery) ? s.gallery : Object.values(s.gallery || {});
+    return s;
+  }
+
+  /* ===================== RENDER FUNCTIONS ===================== */
+  function renderHeader(){
+    $("eventLine").textContent = `${CONFIG.FORMAT} · ${CONFIG.VENUE} · ${CONFIG.CITY}`;
+    $("rulesLine").textContent = CONFIG.RULES_LINE;
+    $("prizes").innerHTML = CONFIG.PRIZES.map(p=>{ const [a,b]=p.split(" · "); return `<b>${a} · <em>${b||""}</em></b>`; }).join("");
+    $("sArtists").textContent = ids().length;
+    $("sPool").textContent = "$" + prizePool();
+    $("infoLink").href = CONFIG.INFO_URL;
+    if(CONFIG.FLYER){
+      const img = $("flyerImg"), a = $("flyerLink");
+      if(!img.getAttribute("src")){
+        img.onload = () => { a.style.display = "block"; };
+        img.onerror = () => { a.style.display = "none"; };
+        img.src = CONFIG.FLYER; a.href = CONFIG.FLYER;
+      }
     }
+    $("footLine").textContent = CONFIG.FOOTER;
+    $("sponsors").textContent = CONFIG.SPONSORS.join(" · ");
+    const st = $("status");
+    st.className = "status " + (S.open ? "open" : "closed");
+    st.textContent = S.open ? `VOTING OPEN · ${CONFIG.DATE_LINE}` : `VOTING CLOSED · ${CONFIG.DATE_LINE}`;
+    $("toggleVote").textContent = S.open ? "CLOSE VOTING" : "OPEN VOTING";
   }
-  $("footLine").textContent = CONFIG.FOOTER;
-  $("sponsors").textContent = CONFIG.SPONSORS.join(" · ");
-  const st = $("status");
-  st.className = "status " + (S.open ? "open" : "closed");
-  st.textContent = S.open ? `VOTING OPEN · ${CONFIG.DATE_LINE}` : `VOTING CLOSED · ${CONFIG.DATE_LINE}`;
-  $("toggleVote").textContent = S.open ? "CLOSE VOTING" : "OPEN VOTING";
-}
 
-function renderVote(){
-  const mine = voted();
-  $("voteNote").textContent = (live ? "Votes are shared live with everyone viewing this page" : "Preview mode — votes stay on this device until a database is connected") + " · one vote per device";
-  $("artistGrid").innerHTML = ids().map(id=>{
-    const a = S.artists[id];
-    const disabled = !S.open || mine;
-    const label = mine === id ? "✓ YOUR VOTE" : (!S.open ? "VOTING CLOSED" : (mine ? "VOTE CAST" : "VOTE"));
-    const nameHtml = a.social ? `<a href="${esc(a.social)}" target="_blank" rel="noopener">${esc(a.name)}</a>` : esc(a.name);
-    return `<div class="card ${mine===id?"voted":""}">
-      <div class="ph">${phInner(a.name, a.photo, a.social)}</div>
-      <div class="bd"><h3>${nameHtml}</h3>
-      <button class="btn" data-vote="${id}" ${disabled?"disabled":""}>${label}</button></div></div>`;
-  }).join("");
-  const h = S.host;
-  const hostNameHtml = h.social ? `<a href="${esc(h.social)}" target="_blank" rel="noopener">${esc(h.name)}</a>` : esc(h.name);
-  $("hostCard").innerHTML = `<div class="ph">${phInner(h.name, h.photo, h.social)}</div>
-    <div><small>HOST ARTIST</small><h3>${hostNameHtml}</h3><p>Painting live alongside the field — not competing.</p></div>`;
-}
-
-function renderBoard(){
-  const pts = id => +(S.votes[id]||0);
-  const order = ids().sort((a,b)=>pts(b)-pts(a));
-  const max = Math.max(1, ...order.map(pts));
-  $("lb").innerHTML = order.map((id,i)=>{
-    const a = S.artists[id];
-    const nameHtml = a.social ? `<a href="${esc(a.social)}" target="_blank" rel="noopener">${esc(a.name)}</a>` : esc(a.name);
-    return `
-    <div class="lb-row"><div class="rk">${i+1}</div>
-      <div><div class="nm">${nameHtml}</div><div class="br"><i style="width:${(pts(id)/max)*100}%"></i></div></div>
-      <div class="pt">${pts(id)}<small>PTS</small></div>
-    </div>`;
-  }).join("");
-}
-
-function renderGallery(){
-  $("gal").innerHTML = S.gallery.length
-    ? S.gallery.map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" loading="lazy" alt="WindowWars photo"></a>`).join("")
-    : `<div class="empty" style="grid-column:1/-1">Photos will appear here after the event.</div>`;
-}
-
-function renderHost(){
-  const ok = unlocked();
-  $("lockBox").style.display = ok ? "none" : "block";
-  $("hostPanel").style.display = ok ? "block" : "none";
-  if(!ok) return;
-  $("editList").innerHTML = ids().map(id=>`<div style="margin-bottom:8px"><input data-name="${id}" value="${esc(S.artists[id].name)}" placeholder="Artist name"></div>`).join("");
-  $("hostName").value = S.host.name;
-}
-
-function renderAll(){ renderHeader(); renderVote(); renderBoard(); renderGallery(); renderHost(); }
-
-async function refresh(keepForm){
-  const inHost = document.activeElement && document.activeElement.closest("#hostPanel");
-  S = await loadState();
-  if(inHost && keepForm){ renderHeader(); renderVote(); renderBoard(); renderGallery(); } else renderAll();
-}
-
-/* ---------- events ---------- */
-document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
-  document.querySelectorAll("section").forEach(s=>s.classList.toggle("on", s.id===b.dataset.t));
-});
-
-$("artistGrid").onclick = async e=>{
-  const id = e.target.dataset.vote; if(!id || !S.open || voted()) return;
-  try{ localStorage.setItem(VOTED_KEY, id); }catch(err){}
-  await inc("votes/" + id);
-  toast("Vote counted!"); await refresh();
-};
-
-$("unlock").onclick = ()=>{
-  if($("pin").value === CONFIG.HOST_PIN){ try{ sessionStorage.setItem(UNLOCK_KEY,"1"); }catch(e){} $("pinErr").textContent=""; renderHost(); }
-  else $("pinErr").textContent = "Incorrect PIN";
-};
-$("pin").onkeydown = e=>{ if(e.key==="Enter") $("unlock").click(); };
-
-$("toggleVote").onclick = async ()=>{ await put("open", !S.open); await refresh(); toast(S.open?"Voting open":"Voting closed"); };
-
-$("saveArtists").onclick = async ()=>{
-  const a = {};
-  ids().forEach(id=>{ a[id] = { name: document.querySelector(`[data-name="${id}"]`).value.trim() || S.artists[id].name }; });
-  await put("artists", a);
-  await put("host", { name: $("hostName").value.trim() || CONFIG.HOST.name });
-  toast("Saved"); await refresh();
-};
-
-$("addPhoto").onclick = async ()=>{
-  const u = $("galUrl").value.trim(); if(!u) return;
-  await put("gallery", [...S.gallery, u]); $("galUrl").value=""; toast("Photo added"); await refresh();
-};
-$("clearPhotos").onclick = async ()=>{ if(confirm("Clear the whole gallery?")){ await put("gallery", []); await refresh(); } };
-
-$("reset").onclick = async ()=>{
-  if(!confirm("Reset ALL votes?")) return;
-  await put("votes", {});
-  try{ localStorage.removeItem(VOTED_KEY); }catch(e){}
-  toast("Votes reset"); await refresh();
-};
-
-/* ---------- falling leaves ---------- */
-(function(){
-  const set = ["🍂","🍁","🍂","🍃","🍁"];
-  for(let i=0;i<10;i++){
-    const l = document.createElement("span");
-    l.className = "leaf";
-    l.textContent = set[i % set.length];
-    l.style.left = (Math.random()*100) + "vw";
-    l.style.fontSize = (16 + Math.random()*14) + "px";
-    l.style.animationDuration = (14 + Math.random()*14) + "s";
-    l.style.animationDelay = (-Math.random()*20) + "s";
-    document.body.appendChild(l);
+  function renderVote(){
+    const mine = voted();
+    $("voteNote").textContent = "Votes are updated live across all connected devices · One vote per device";
+    $("artistGrid").innerHTML = ids().map(id=>{
+      const a = S.artists[id];
+      const disabled = !S.open || mine;
+      const label = mine === id ? "✓ YOUR VOTE" : (!S.open ? "VOTING CLOSED" : (mine ? "VOTE CAST" : "VOTE"));
+      const nameHtml = a.social ? `<a href="${esc(a.social)}" target="_blank" rel="noopener">${esc(a.name)}</a>` : esc(a.name);
+      return `<div class="card ${mine===id?"voted":""}">
+        <div class="ph">${phInner(a.name, a.photo, a.social)}</div>
+        <div class="bd"><h3>${nameHtml}</h3>
+        <button class="btn" data-vote="${id}" ${disabled?"disabled":""}>${label}</button></div></div>`;
+    }).join("");
+    const h = S.host;
+    const hostNameHtml = h.social ? `<a href="${esc(h.social)}" target="_blank" rel="noopener">${esc(h.name)}</a>` : esc(h.name);
+    $("hostCard").innerHTML = `<div class="ph">${phInner(h.name, h.photo, h.social)}</div>
+      <div><small>HOST ARTIST</small><h3>${hostNameHtml}</h3><p>Painting live alongside the field — not competing.</p></div>`;
   }
-})();
 
-/* ---------- boot ---------- */
-(async function(){
-  await refresh();
-  if(live) setInterval(()=>refresh(true), 5000);
-})();
+  function renderBoard(){
+    const pts = id => +(S.votes[id]||0);
+    const order = ids().sort((a,b)=>pts(b)-pts(a));
+    const max = Math.max(1, ...order.map(pts));
+    $("lb").innerHTML = order.map((id,i)=>{
+      const a = S.artists[id];
+      const nameHtml = a.social ? `<a href="${esc(a.social)}" target="_blank" rel="noopener">${esc(a.name)}</a>` : esc(a.name);
+      return `
+      <div class="lb-row"><div class="rk">${i+1}</div>
+        <div><div class="nm">${nameHtml}</div><div class="br"><i style="width:${(pts(id)/max)*100}%"></i></div></div>
+        <div class="pt">${pts(id)}<small>PTS</small></div>
+      </div>`;
+    }).join("");
+  }
+
+  function renderGallery(){
+    $("gal").innerHTML = S.gallery.length
+      ? S.gallery.map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" loading="lazy" alt="WindowWars photo"></a>`).join("")
+      : `<div class="empty" style="grid-column:1/-1">Photos will appear here after the event.</div>`;
+  }
+
+  function renderHost(){
+    const ok = unlocked();
+    $("lockBox").style.display = ok ? "none" : "block";
+    $("hostPanel").style.display = ok ? "block" : "none";
+    if(!ok) return;
+    $("editList").innerHTML = ids().map(id=>`<div style="margin-bottom:8px"><input data-name="${id}" value="${esc(S.artists[id].name)}" placeholder="Artist name"></div>`).join("");
+    $("hostName").value = S.host.name;
+  }
+
+  function renderAll(){ renderHeader(); renderVote(); renderBoard(); renderGallery(); renderHost(); }
+
+  /* ===================== REAL-TIME FIREBASE SUBSCRIPTION ===================== */
+  onValue(dbRef, (snapshot) => {
+    const data = snapshot.val();
+    S = normalize(data);
+    
+    // Prevent overriding inputs if the host is actively typing
+    const inHost = document.activeElement && document.activeElement.closest("#hostPanel");
+    if(inHost) {
+      renderHeader(); renderVote(); renderBoard(); renderGallery();
+    } else {
+      renderAll();
+    }
+  });
+
+  /* ===================== EVENT HANDLERS ===================== */
+  document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+    document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+    document.querySelectorAll("section").forEach(s=>s.classList.toggle("on", s.id===b.dataset.t));
+  });
+
+  $("artistGrid").onclick = async e => {
+    const id = e.target.dataset.vote; if(!id || !S.open || voted()) return;
+    try{ localStorage.setItem(VOTED_KEY, id); }catch(err){}
+
+    const voteRef = ref(db, `windowwars/votes/${id}`);
+    await runTransaction(voteRef, (currentVotes) => (currentVotes || 0) + 1);
+    toast("Vote counted!");
+  };
+
+  $("unlock").onclick = () => {
+    if($("pin").value === CONFIG.HOST_PIN){ 
+      try{ sessionStorage.setItem(UNLOCK_KEY,"1"); }catch(e){} 
+      $("pinErr").textContent=""; 
+      renderHost(); 
+    } else $("pinErr").textContent = "Incorrect PIN";
+  };
+  $("pin").onkeydown = e => { if(e.key==="Enter") $("unlock").click(); };
+
+  $("toggleVote").onclick = async () => {
+    await set(ref(db, 'windowwars/open'), !S.open);
+    toast(S.open ? "Voting closed" : "Voting open");
+  };
+
+  $("saveArtists").onclick = async () => {
+    const a = {};
+    ids().forEach(id => { a[id] = { name: document.querySelector(`[data-name="${id}"]`).value.trim() || S.artists[id].name }; });
+    await set(ref(db, 'windowwars/artists'), a);
+    await set(ref(db, 'windowwars/host'), { name: $("hostName").value.trim() || CONFIG.HOST.name });
+    toast("Saved");
+  };
+
+  $("addPhoto").onclick = async () => {
+    const u = $("galUrl").value.trim(); if(!u) return;
+    await set(ref(db, 'windowwars/gallery'), [...S.gallery, u]);
+    $("galUrl").value = "";
+    toast("Photo added");
+  };
+
+  $("clearPhotos").onclick = async () => { 
+    if(confirm("Clear the whole gallery?")){ 
+      await set(ref(db, 'windowwars/gallery'), []); 
+      toast("Gallery cleared"); 
+    } 
+  };
+
+  $("reset").onclick = async () => {
+    if(!confirm("Reset ALL votes?")) return;
+    await set(ref(db, 'windowwars/votes'), {});
+    try{ localStorage.removeItem(VOTED_KEY); }catch(e){}
+    toast("Votes reset");
+  };
+
+  /* ===================== ANIMATION ===================== */
+  (function(){
+    const set = ["🍂","🍁","🍂","🍃","🍁"];
+    for(let i=0;i<10;i++){
+      const l = document.createElement("span");
+      l.className = "leaf";
+      l.textContent = set[i % set.length];
+      l.style.left = (Math.random()*100) + "vw";
+      l.style.fontSize = (16 + Math.random()*14) + "px";
+      l.style.animationDuration = (14 + Math.random()*14) + "s";
+      l.style.animationDelay = (-Math.random()*20) + "s";
+      document.body.appendChild(l);
+    }
+  })();
 </script>
 </body>
 </html>
